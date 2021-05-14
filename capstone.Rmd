@@ -1,0 +1,55 @@
+---
+title: "COVID-19 Nursing Home Data"
+output: 
+  flexdashboard::flex_dashboard
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+# load packages
+
+
+
+```
+
+
+
+Interactive model
+=======================================================================
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r}
+# shiny inputs defined here
+
+
+```
+ 
+Column
+-------------------------------------
+    
+### Chart 1
+    
+```{r}
+```
+
+
+About this model
+=======================================================================
+
+
+#### Data source
+
+These data come from the **CMS COVID-19 public use files**, which were reported weekly starting in May 2020. These data are self-reported by nursing homes and capture variables that include resident COVID deaths, resident COVID infections, staff COVID deaths, staff COVID infections, whether or not facilities had adequate PPE and COVID tests, and other descriptive variables. 
+
+### Motivation/aim
+
+The purpose of this model is to estimate the probability that **[outcome]** using inputs that include **[modelinputs]**. This information is of interest because **[rationale]**. 
+
+### Model details
+
+
+
+### Data caveats
+
