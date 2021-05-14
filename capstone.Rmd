@@ -23,33 +23,85 @@ Inputs {.sidebar}
 ```{r}
 # shiny inputs defined here
 
+# US state
+
+selectInput("state", label = strong("State:"),
+            choices = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"), selected = "AL"
+           )
+
+# slider for week
+
+
+
+# PPE shortage
+
+checkboxGroupInput("ppe", label = strong("Reported PPE shortage?:"),
+    c("No" = 0, "Yes" = 1), selected = "No"
+)
+
+
+# size of facility
+
+selectInput("facility_size", label = strong("Size of facility (# occupied beds):"), 
+            choices = c("Small (0-100 beds)", "Large (100+ beds)"))
+
+
 
 ```
  
 Column
 -------------------------------------
     
-### Chart 1
+### Predicted total resident and staff deaths for the month of December
     
 ```{r}
+
+
+```
+
+Column
+-------------------------------------
+    
+### Probability of reporting a PPE shortage
+    
+```{r}
+
+
 ```
 
 
-About this model
+About this dataset
 =======================================================================
 
+### **Summary of the public health problem: COVID in nursing homes**
 
-#### Data source
+### **Data source**
 
 These data come from the **CMS COVID-19 public use files**, which were reported weekly starting in May 2020. These data are self-reported by nursing homes and capture variables that include resident COVID deaths, resident COVID infections, staff COVID deaths, staff COVID infections, whether or not facilities had adequate PPE and COVID tests, and other descriptive variables. 
 
+### **Data caveats**
+
++ As is always the case with self-reported facility data, **response bias** ...
++ 
+
+Variable info
+=======================================================================
+
+
+
+Model info
+=======================================================================
+
 ### Motivation/aim
 
-The purpose of this model is to estimate the probability that **[outcome]** using inputs that include **[modelinputs]**. This information is of interest because **[rationale]**. 
+The purpose of this model is to estimate the **total number of nursing home resident deaths in the month of December** for different states, varied by inputs that include  **facility-reported PPE shortages** and **size of nursing home facilities (large or small) based on number of occupied beds.**  
+
+This information is of interest for public health planning and policy because **[rationale]**. 
 
 ### Model details
 
+These data are fitted with a 
 
 
-### Data caveats
+### Model caveats
 
