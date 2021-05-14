@@ -15,10 +15,29 @@ cms =
 
 ## subset just November 1 - December 31
 
-cms_novdec = subset(cms, date_conversion > "2020-11-01" & date_conversion < "2020-12-31" )
 
 ## arrange truncated dataset by date and facility
 
-cms_novdec %>% 
+cms_novdec = 
+  subset(cms, date_conversion > "2020-11-01" & date_conversion < "2020-12-31") %>%
+  arrange(`Provider State`) %>%
+  arrange(`Federal Provider Number`) %>%
   arrange(date_conversion) %>%
-  arrange(`Federal Provider Number`)
+  mutate(ppe=0) %>%
+  mutate(staff=0) 
+  
+
+
+
+## create PPE shortage variable
+
+
+## create deaths variable
+
+
+## create facility size variable
+
+
+## plot deaths as function of 
+ 
+  
