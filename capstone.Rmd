@@ -8,7 +8,7 @@ runtime: shiny
 ```{r global, include=FALSE}
 # load packages
 
-#### TEST GITHUB CLONE
+
 
 
 
@@ -16,7 +16,7 @@ runtime: shiny
 
 
 
-Interactive model & GITHUB TEST
+Interactive model 
 =======================================================================
 
 Inputs {.sidebar}
@@ -27,6 +27,7 @@ Inputs {.sidebar}
 
 # US state
 
+
 selectInput("state", label = strong("State:"),
             choices = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"), selected = "AL"
            )
@@ -34,19 +35,16 @@ selectInput("state", label = strong("State:"),
 # slider for week
 
 
-
-# PPE shortage
-
-checkboxGroupInput("ppe", label = strong("Reported PPE shortage?:"),
-    c("No" = 0, "Yes" = 1), selected = "No"
-)
-
-
 # size of facility
 
 selectInput("facility_size", label = strong("Size of facility (# occupied beds):"), 
-            choices = c("Small (0-100 beds)", "Large (100+ beds)"))
+            choices = c("small (0-100 beds)", "large (100+ beds)"))
 
+# PPE shortage
+
+radioButtons("ppe_shortage", label = strong("Reported PPE shortage?:"),
+    c("Yes" = 1, "No" = 0), selected = 1
+)
 
 
 ```
@@ -54,9 +52,10 @@ selectInput("facility_size", label = strong("Size of facility (# occupied beds):
 Column
 -------------------------------------
     
-### Predicted total resident and staff deaths for the month of December
+### **Predicted probability of a facility-reported staffing shortage**
     
 ```{r}
+
 
 
 ```
@@ -64,18 +63,40 @@ Column
 Column
 -------------------------------------
     
-### Probability of reporting a PPE shortage
+### **Interpretation** 
     
 ```{r}
 
 
 ```
 
+For a **`r renderText(input$facility_size)`** nursing home facility in **`r renderText(input$state)`**, there was a XXXX probability of the facility reporting a staffing shortage at least once in the time period from XXXX based upon this model. 
 
-About this dataset
+Motivation/aim
 =======================================================================
 
 ### **Summary of the public health problem: COVID in nursing homes**
+
+
+
+### **Purpose of model**
+
+The purpose of this model is to estimate the **likelihood of a nursing home facility reporting a staffing shortage** for different states, varied by inputs that include  **facility-reported PPE shortages,** **size of nursing home facilities (large or small) based on number of occupied beds**, and **staff and resident cases**.  
+
+### **Policy relevance** 
+
+This information is of interest for public health planning and policy because it begins to provide a clearer picture of where facility-reported staffing shortages were most acute during this phase of the pandemic. This information could be used for several planning purposes: 
+
+1) It could indicate where additional federal resources should be directed to understaffed and under-resourced nursing homes;
+2) It could be useful in vaccine rollout planning as strategies to vaccinate nursing home staff are developed; and 
+3) It could elucidate characteristics of facilities that might require additional staffing and other types of assistance for planning purposes in future pandemics.
+
+
+
+
+
+About this dataset
+=======================================================================
 
 ### **Data source**
 
@@ -84,26 +105,40 @@ These data come from the **CMS COVID-19 public use files**, which were reported 
 ### **Data caveats**
 
 + As is always the case with self-reported facility data, **response bias** ...
-+ 
++ Collection of COVID nursing home data has been a fraught endeavor throughout the pandemic - the CMS reporting sought to harmonize data definitions in this dataset, but a thoughtful summary of these many data problems can be found at the COVID tracking project webpage. 
+
+### **References**
+
++ McGarry et al., Health Affairs
++ COVID Tracking Project: Data in Long-term Care Facilities
++ AARP: COVID in Nursing homes 
+
+
+
+Model details
+=======================================================================
+
+### **Model & equation **
+
+These data are fitted with a **logistic regression model**. This model was selected because a binary outcome is of interest.
+
+Pr()
+
+### **Model caveats**
+
+Additional models would also be appropriate to explore in this situation given that the data are time-varying and that some of the outcomes being discussed here are relatively rare events. 
 
 Variable info
 =======================================================================
+**Outcome variable:** 
+
++ Reported staff shortage: Any reported staff shortage from the time period XXXX. 
 
 
+**Predictor variables:**
 
-Model info
-=======================================================================
-
-### Motivation/aim
-
-The purpose of this model is to estimate the **total number of nursing home resident deaths in the month of December** for different states, varied by inputs that include  **facility-reported PPE shortages** and **size of nursing home facilities (large or small) based on number of occupied beds.**  
-
-This information is of interest for public health planning and policy because **[rationale]**. 
-
-### Model details
-
-These data are fitted with a 
-
-
-### Model caveats
++ PPE shortage
++ Cumulative # resident cases  
++ Cumulative # staff cases
++ Size of facility
 
