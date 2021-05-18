@@ -1,5 +1,5 @@
 ---
-title: "COVID-19 Nursing Home Data"
+title: "COVID-19 in nursing homes & staffing shortages"
 output: 
   flexdashboard::flex_dashboard
 runtime: shiny
@@ -7,9 +7,25 @@ runtime: shiny
 
 ```{r global, include=FALSE}
 # load packages
+ 
+
+library(tidyverse)
+library(dplyr)
 
 
+cms_subset = read_csv("cms_subset.csv") 
 
+cms_shortages = cms_subset %>% 
+  group_by(`Federal Provider Number`) %>%
+  summarise(facility_size, allshortages_ppe =sum(shortage_ppe) , allshortages_staff = sum(shortage_staff), `Provider State`, max_totstaffcases = max(`Staff Total Confirmed COVID-19`))
+  
+cms_shortages = cms_shortages[complete.cases(cms_shortages), ] ## removes NA rows
+
+cms_shortages = distinct(cms_shortages, .keep_all=TRUE)  ## removes duplicate rows
+
+cms_shortages = cms_shortages %>%
+  mutate(anyshortage_staff = as.factor(ifelse(allshortages_staff>0, 1, 0))) %>%
+  mutate(anyshortage_ppe = as.factor(ifelse(allshortages_ppe>0, 1, 0)))
 
 
 ```
@@ -22,76 +38,90 @@ Interactive model
 Inputs {.sidebar}
 -------------------------------------
 
+ **DISCLAIMER:** This app was created for a course project. Data and calculations from this app should not be used or published elsewhere. 
+
+
 ```{r}
-# shiny inputs defined here
-
-# US state
-
-
-selectInput("state", label = strong("State:"),
-            choices = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"), selected = "AL"
-           )
-
-# slider for week
-
 
 # size of facility
 
-selectInput("facility_size", label = strong("Size of facility (# occupied beds):"), 
-            choices = c("small (0-100 beds)", "large (100+ beds)"))
+
+selectInput("facilitysize", label = strong("Size of facility (# occupied beds):"), 
+            choices = c("small (0-100 beds)" = 1, "large (100+ beds)" = 2), selected = 1)
 
 # PPE shortage
 
-radioButtons("ppe_shortage", label = strong("Reported PPE shortage?:"),
+radioButtons("ppe", label = strong("Reported PPE shortage?:"),
     c("Yes" = 1, "No" = 0), selected = 1
 )
+
+# Total number of staff cases from May 31 - December 31 2020
+
+sliderInput("staffcases", label = strong("Total reported COVID-19 staff cases"), min = 0, max = 230, value = 20, step = 1)
+
 
 
 ```
  
 Column
 -------------------------------------
+
     
-### **Predicted probability of a facility-reported staffing shortage**
-    
+### **Models & predictions**
+
 ```{r}
+
+mlr_model = lm(allshortages_staff ~ anyshortage_ppe + facility_size + max_totstaffcases, data = cms_shortages)
+summary(mlr_model)
+
+renderPrint ({
+ 
+predict_ss_num = predict(mlr_model, data.frame(anyshortage_ppe = as.factor(input$ppe), facility_size = as.numeric(input$facilitysize), max_totstaffcases = input$staffcases))
+
+print(round(predict_ss_num, 0))
+
+
+}) 
 
 
 
 ```
+
+
 
 Column
 -------------------------------------
     
-### **Interpretation** 
+### **Interpretations** 
     
-```{r}
+For a nursing home with the selected inputs, there would be a predicted `r renderPrint({print(round(predict_ss_num, 0)})` instances of self-reported staffing shortages from May 31 - December 31 2020.
 
 
-```
 
-For a **`r renderText(input$facility_size)`** nursing home facility in **`r renderText(input$state)`**, there was a XXXX probability of the facility reporting a staffing shortage at least once in the time period from XXXX based upon this model. 
 
 Motivation/aim
 =======================================================================
 
 ### **Summary of the public health problem: COVID in nursing homes**
 
-
+COVID-19 took a devastating toll in nursing homes and assisted living facilities in the U.S. - although less than 1 percent of people in the U.S. live in nursing homes, nursing homes accounted for 43% of all COVID-19 deaths in the U.S. through June. These included deaths among both residents and staff, leading to significant staff burnout and reported staff turnover and shortages in nursing homes. 
 
 ### **Purpose of model**
 
-The purpose of this model is to estimate the **likelihood of a nursing home facility reporting a staffing shortage** for different states, varied by inputs that include  **facility-reported PPE shortages,** **size of nursing home facilities (large or small) based on number of occupied beds**, and **staff and resident cases**.  
+The purpose of this model is to estimate the **extent of nursing home staff shortages** for different types of facilities, varied by inputs that include  **facility-reported PPE shortages,** **size of nursing home facilities (large or small) based on number of occupied beds**.  
 
 ### **Policy relevance** 
 
-This information is of interest for public health planning and policy because it begins to provide a clearer picture of where facility-reported staffing shortages were most acute during this phase of the pandemic. This information could be used for several planning purposes: 
+This information is of interest for public health planning and policy because it begins to provide a clearer picture of where facility-reported staffing shortages were most acute during this phase of the pandemic. This information could: 
 
-1) It could indicate where additional federal resources should be directed to understaffed and under-resourced nursing homes;
-2) It could be useful in vaccine rollout planning as strategies to vaccinate nursing home staff are developed; and 
-3) It could elucidate characteristics of facilities that might require additional staffing and other types of assistance for planning purposes in future pandemics.
+1) indicate where additional federal resources should be directed to understaffed and under-resourced nursing homes;
+2) inform vaccine rollout planning as strategies to vaccinate nursing home staff are developed; and 
+3) elucidate characteristics of facilities that might require additional staffing and other types of proactive assistance in future pandemics.
 
+### **References**
 
++ [McGarry et al., Health Affairs 2021: Severe Staffing And Personal Protective Equipment Shortages Faced By Nursing Homes During The COVID-19 Pandemic](https://www.healthaffairs.org/doi/10.1377/hlthaff.2020.01269)
++ [AARP: COVID in Nursing homes](https://www.aarp.org/caregiving/health/info-2020/covid-19-nursing-homes-an-american-tragedy.html)
 
 
 
@@ -100,45 +130,47 @@ About this dataset
 
 ### **Data source**
 
-These data come from the **CMS COVID-19 public use files**, which were reported weekly starting in May 2020. These data are self-reported by nursing homes and capture variables that include resident COVID deaths, resident COVID infections, staff COVID deaths, staff COVID infections, whether or not facilities had adequate PPE and COVID tests, and other descriptive variables. 
+These data come from the [**CMS COVID-19 public use files**](https://data.cms.gov/stories/s/COVID-19-Nursing-Home-Data/bkwz-xpvg/), which were reported weekly starting in May 2020. These data are self-reported by nursing homes and capture variables that include resident COVID deaths, resident COVID infections, staff COVID deaths, staff COVID infections, whether or not facilities had adequate PPE and COVID tests, and other descriptive variables. 
 
 ### **Data caveats**
 
-+ As is always the case with self-reported facility data, **response bias** ...
-+ Collection of COVID nursing home data has been a fraught endeavor throughout the pandemic - the CMS reporting sought to harmonize data definitions in this dataset, but a thoughtful summary of these many data problems can be found at the COVID tracking project webpage. 
++ All data are self-reported.
++ Collection of COVID nursing home data has been a fraught endeavor throughout the pandemic - CMS sought to harmonize data definitions in this dataset, but a thoughtful summary of the many measurement problems that persist can be found at the COVID tracking project blog post linked below. 
++ The data begin in late May because that is when CMS started requiring these reports, so earlier periods of the pandemic are not captured here.
 
 ### **References**
 
-+ McGarry et al., Health Affairs
-+ COVID Tracking Project: Data in Long-term Care Facilities
-+ AARP: COVID in Nursing homes 
++ [McGarry et al., Health Affairs 2021: Severe Staffing And Personal Protective Equipment Shortages Faced By Nursing Homes During The COVID-19 Pandemic](https://www.healthaffairs.org/doi/10.1377/hlthaff.2020.01269)
++ [COVID Tracking Project: Data in Long-term Care Facilities](https://covidtracking.com/analysis-updates/federal-covid-data-101-working-with-cms-nursing-home-data)
++ [AARP: COVID in Nursing homes](https://www.aarp.org/caregiving/health/info-2020/covid-19-nursing-homes-an-american-tragedy.html)
 
 
 
 Model details
 =======================================================================
 
-### **Model & equation **
+### **Model & equation**
 
-These data are fitted with a **logistic regression model**. This model was selected because a binary outcome is of interest.
-
-Pr()
+These data are fitted with a **multiple linear regression model**. This model was selected because a numeric outcome is of interest. Predictor variables were selected based on their likelihood of being associated with a stressful work environment for nursing home staff, potentially influencing staff shortages. 
 
 ### **Model caveats**
 
-Additional models would also be appropriate to explore in this situation given that the data are time-varying and that some of the outcomes being discussed here are relatively rare events. 
+Additional models would also be appropriate to explore and test in this situation given that the data are time-varying and that some of the variables being discussed here are relatively rare events and could also work as count data. 
 
 Variable info
 =======================================================================
-**Outcome variable:** 
+**Outcome variables:** 
 
-+ Reported staff shortage: Any reported staff shortage from the time period XXXX. 
++ **Number of instances of reported staff shortages:** Total instances of a reported shortage of nursing staff, clinical staff, aides, or other staff during the time period May 31 - December 21 2020. 
+
+**Predictor variables:** 
+
++ **Any reported PPE shortage:** ANY reported shortages of N95 masks, surgical masks, eye protection, gowns, or gloves during the time period May 31 - December 31 2020.
++ **Size of facility:** Facilities with <100 beds are "small"; facilities with 100+ beds are "large" (roughly 50/50 distribution)
++ **Total number of staff cases**: Total number of reported staff COVID-19 cases during the time period May 31 - December 31 2020.
 
 
-**Predictor variables:**
+Documentation
+=======================================================================
 
-+ PPE shortage
-+ Cumulative # resident cases  
-+ Cumulative # staff cases
-+ Size of facility
-
+All code for this project can be found at (https://github.com/alexandraruth/covidnursinghome/tree/main). 

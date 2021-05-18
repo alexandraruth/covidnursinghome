@@ -11,7 +11,8 @@ library(lubridate)
 library(tidyr)
 library(knitr)
 
-cms = read_csv("nursinghome.csv")
+cms = read_csv("nursinghome.csv") 
+### csv above has been downloaded from https://data.cms.gov/stories/s/COVID-19-Nursing-Home-Data/bkwz-xpvg/
 
 
 ##### Step 2: Wrangle data #####
@@ -54,30 +55,39 @@ cms_subset = cms_subset %>%
 
 write.csv(cms_subset,'cms_subset.csv')
   
-## create clean table with one row for each facility ##
+## SHORTAGES: create shortages table with one row for each facility ##
 
-cms_clean = cms_subset %>% 
+cms_shortages = cms_subset %>% 
   group_by(`Federal Provider Number`) %>%
   summarise(facility_size, allshortages_ppe =sum(shortage_ppe) , allshortages_staff = sum(shortage_staff), `Provider State`, max_totstaffcases = max(`Staff Total Confirmed COVID-19`))
   
-cms_clean = cms_clean[complete.cases(cms_clean), ] ## removes NA rows
+cms_shortages = cms_shortages[complete.cases(cms_shortages), ] ## removes NA rows
 
-cms_clean = distinct(cms_clean, .keep_all=TRUE)  ## removes duplicate rows
+cms_shortages = distinct(cms_shortages, .keep_all=TRUE)  ## removes duplicate rows
 
-cms_clean = cms_clean %>%
+cms_shortages = cms_shortages %>%
   mutate(anyshortage_staff = as.factor(ifelse(allshortages_staff>0, 1, 0))) %>%
   mutate(anyshortage_ppe = as.factor(ifelse(allshortages_ppe>0, 1, 0)))
 
+write.csv(cms_shortages, 'cms_shortages.csv')
 
-write.csv(cms_clean, 'cms_clean.csv')
+## DEATHS: create deaths table for each state ##
 
+
+ 
+  
 #### Step 3: Test plots ####
 
-mlr_model = lm(allshortages_staff ~ anyshortage_ppe + facility_size + max_totstaffcases, data = cms_clean)
+mlr_model = lm(allshortages_staff ~ anyshortage_ppe + facility_size + max_totstaffcases, data = cms_shortages)
 summary(mlr_model)
 
-log_model = glm(anyshortage_staff ~ anyshortage_ppe + facility_size + max_totstaffcases, family = "binomial", data = cms_clean)
+predict(mlr_model, data.frame(anyshortage_ppe = as.factor(1), facility_size = as.factor(2), max_totstaffcases = 20))
+
+
+log_model = glm(anyshortage_staff ~ anyshortage_ppe + facility_size + max_totstaffcases, family = "binomial", data = cms_shortages)
 summary(log_model)
+
+predict(log_model, data.frame(anyshortage_ppe = as.factor(1), facility_size = as.factor(2), max_totstaffcases = 20))
 
 
 #### Step 4: Save csv and push cleaned data to github ####
