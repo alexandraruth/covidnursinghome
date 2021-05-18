@@ -113,7 +113,7 @@ Motivation/aim
 
 ### **Summary of the public health problem: COVID in nursing homes**
 
-COVID-19 took a devastating toll in nursing homes and assisted living facilities in the U.S. - although less than 1 percent of people in the U.S. live in nursing homes, nursing homes accounted for 43% of all COVID-19 deaths in the U.S. through June. These included deaths among both residents and staff, leading to significant staff burnout and reported staff turnover and shortages in nursing homes. 
+COVID-19 had a devastating impact in nursing homes and assisted living facilities in the U.S. - although less than 1 percent of people in the U.S. live in nursing homes, nursing homes accounted for 43% of all COVID-19 deaths in the U.S. through June. These included deaths among both residents and staff, leading to significant staff burnout and reported staff turnover and shortages in nursing homes. 
 
 ### **Purpose of model**
 
