@@ -12,13 +12,18 @@ runtime: shiny
 library(tidyverse)
 library(dplyr)
 
+cms_shortages = read_csv("https://raw.githubusercontent.com/alexandraruth/covidnursinghome/main/cms_shortages.csv") 
 
-cms_subset = read_csv("cms_subset.csv") 
+cms_shortages = cms_shortages[complete.cases(cms_shortages), ] ## removes NA rows
 
-cms_shortages = cms_subset %>% 
-  group_by(`Federal Provider Number`) %>%
-  summarise(facility_size, allshortages_ppe =sum(shortage_ppe) , allshortages_staff = sum(shortage_staff), `Provider State`, max_totstaffcases = max(`Staff Total Confirmed COVID-19`))
-  
+cms_shortages = distinct(cms_shortages, .keep_all=TRUE)  ## removes duplicate rows
+
+cms_shortages = cms_shortages %>%
+  mutate(anyshortage_staff = as.factor(ifelse(allshortages_staff>0, 1, 0))) %>%
+  mutate(anyshortage_ppe = as.factor(ifelse(allshortages_ppe>0, 1, 0)))
+
+
+## refine variables (add this to app)
 cms_shortages = cms_shortages[complete.cases(cms_shortages), ] ## removes NA rows
 
 cms_shortages = distinct(cms_shortages, .keep_all=TRUE)  ## removes duplicate rows
@@ -39,6 +44,7 @@ Inputs {.sidebar}
 -------------------------------------
 
  **DISCLAIMER:** This app was created for a course project. Data and calculations from this app should not be used or published elsewhere. 
+
 
 
 ```{r}
@@ -74,12 +80,13 @@ Column
 mlr_model = lm(allshortages_staff ~ anyshortage_ppe + facility_size + max_totstaffcases, data = cms_shortages)
 summary(mlr_model)
 
-renderPrint ({
+getPrediction = renderPrint ({
  
-predict_ss_num = predict(mlr_model, data.frame(anyshortage_ppe = as.factor(input$ppe), facility_size = as.numeric(input$facilitysize), max_totstaffcases = input$staffcases))
+p = predict(mlr_model, data.frame(anyshortage_ppe = as.factor(input$ppe), facility_size = as.numeric(input$facilitysize), max_totstaffcases = input$staffcases))
 
-print(round(predict_ss_num, 0))
+predictval = unname(p)
 
+print(round(predictval, 0))
 
 }) 
 
@@ -94,7 +101,9 @@ Column
     
 ### **Interpretations** 
     
-For a nursing home with the selected inputs, there would be a predicted `r renderPrint({print(round(predict_ss_num, 0)})` instances of self-reported staffing shortages from May 31 - December 31 2020.
+For a nursing home with the selected inputs, the predicted number of instances of self-reported staffing shortages from May 31 - December 31 2020 is:
+
+**`r renderText(getPrediction())`**
 
 
 
@@ -108,7 +117,7 @@ COVID-19 took a devastating toll in nursing homes and assisted living facilities
 
 ### **Purpose of model**
 
-The purpose of this model is to estimate the **extent of nursing home staff shortages** for different types of facilities, varied by inputs that include  **facility-reported PPE shortages,** **size of nursing home facilities (large or small) based on number of occupied beds**.  
+The purpose of this model is to estimate the **extent of nursing home staff shortages** for different types of facilities, varied by inputs that include  **facility-reported PPE shortages,** **size of nursing home facilities (large or small) based on number of occupied beds**, and **burden of staff COVID-19 cases**.  
 
 ### **Policy relevance** 
 
@@ -153,6 +162,8 @@ Model details
 
 These data are fitted with a **multiple linear regression model**. This model was selected because a numeric outcome is of interest. Predictor variables were selected based on their likelihood of being associated with a stressful work environment for nursing home staff, potentially influencing staff shortages. 
 
+$\ Y = \beta_0 + \beta_1 (PPE shortage) + \beta_2 (facility size) + \beta_3(staffcases)$
+
 ### **Model caveats**
 
 Additional models would also be appropriate to explore and test in this situation given that the data are time-varying and that some of the variables being discussed here are relatively rare events and could also work as count data. 
@@ -160,6 +171,9 @@ Additional models would also be appropriate to explore and test in this situatio
 Variable info
 =======================================================================
 **Outcome variables:** 
+
+A significant amount of data wrangling and variable construction was needed for this work - a brief summary is below. 
+
 
 + **Number of instances of reported staff shortages:** Total instances of a reported shortage of nursing staff, clinical staff, aides, or other staff during the time period May 31 - December 21 2020. 
 
