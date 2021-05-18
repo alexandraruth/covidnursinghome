@@ -9,6 +9,9 @@ This app was designed for a class project where the objective was to develop a S
 
 This app also provides detailed information on the origins of this particular dataset and caveats of using this dataset.
 
+The purpose of this prediction model is to estimate the **extent of nursing home staff shortages** for different types of facilities, varied by inputs that include  **facility-reported PPE shortages,** **size of nursing home facilities (large or small) based on number of occupied beds**, and **burden of staff COVID-19 cases**. 
+
+
 ### Data
 
 Data for this dashboard come from the [CMS COVID-19 Nursing Home Dataset](https://data.cms.gov/stories/s/COVID-19-Nursing-Home-Data/bkwz-xpvg/).
